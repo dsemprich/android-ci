@@ -1,3 +1,10 @@
+# This Dockerfile creates a static build image for CI
+
+# after two days of trying to install Android SDK without knowing anything about android development
+# I've resulted to use existing up to date (even though not too popular) docker image
+# https://github.com/menny/docker_android
+LABEL maintainer="David Semprich <david-semprich@hell-gutmann.com>"
+LABEL description="Android NDK based on kmindi/android-ci"
 #
 # GitLab CI Android Runner
 #
@@ -13,7 +20,15 @@ ENV PATH=$PATH:${ANDROID_HOME}/emulator:${ANDROID_HOME}/tools:${ANDROID_HOME}/to
 # Prepare dependencies
 RUN mkdir $ANDROID_HOME \
   && apt-get update --yes \
-  && apt-get install --yes wget tar unzip lib32stdc++6 lib32z1 libqt5widgets5 expect \
+  && apt-get install --yes  --no-install-recommends \
+  build-essential \
+  cmake \
+  wget \
+  tar \
+  unzip \
+  lib32stdc++6 lib32z1 libqt5widgets5 \
+  expect \
+
   && apt-get clean \
   && rm -fr /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -22,7 +37,7 @@ RUN wget -O android-sdk.zip https://dl.google.com/android/repository/tools_r${AN
   && unzip -q android-sdk.zip -d $ANDROID_HOME \
   && rm android-sdk.zip
 
-# Workaround for 
+# Workaround for
 # Warning: File /root/.android/repositories.cfg could not be loaded.
 RUN mkdir /root/.android \
   && touch /root/.android/repositories.cfg
@@ -56,5 +71,19 @@ RUN echo "y" | sdkmanager "extras;android;m2repository" "extras;google;m2reposit
 RUN echo "y" | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
 RUN echo "y" | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
 
+# NDK
+RUN echo "y" | sdkmanager "ndk-bundle"
+
 # echo actually installed Android SDK packages
 RUN sdkmanager --list
+
+# install OS packages
+RUN apt-get --quiet update --yes
+RUN apt-get --quiet install --yes ruby ruby-dev
+# We use this for xxd hex->binary
+RUN apt-get --quiet install --yes vim-common
+# install FastLane
+COPY Gemfile.lock .
+COPY Gemfile .
+RUN gem install bundler
+RUN bundle install
