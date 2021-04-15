@@ -67,7 +67,6 @@ sdkmanager "extras;google;m2repository" && \
 sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" && \
 sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2" && \
 # NDK
-sdkmanager "ndk-bundle" && \
 sdkmanager "ndk;21.0.6113669"
 
 # echo actually installed Android SDK packages
